@@ -85,6 +85,16 @@ for DQN vs. a stochastic policy for PPO.
 Requires **Python 3.10+**.
 
 ```bash
+# Clone the repository
+git clone https://github.com/E55IDDIK/RL-Mini-Project.git
+cd RL-Mini-Project
+
+# Create and activate a virtual environment (recommended)
+python3 -m venv venv
+venv\Scripts\activate     # On Windows
+# OR
+source venv/bin/activate  # On Linux/Mac
+
 # Install dependencies
 pip install -r requirements.txt
 ```
