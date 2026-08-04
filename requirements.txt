@@ -1,0 +1,15 @@
+# Core
+numpy
+gymnasium
+
+# Deep learning
+torch
+torch-geometric
+
+# Training
+tensorboard
+tqdm
+
+# Visualization
+matplotlib
+plotly
