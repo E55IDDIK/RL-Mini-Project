@@ -1,0 +1,15 @@
+DS-G07_MD3SI/
+├── README.md            # Instructions to reproduce everything in 1 command
+├── requirements.txt     # Pinned package versions
+├── run_all.sh           # Script that regenerates ALL figures and tables
+├── configs/             # .yaml files for hyperparameters (No hardcoded values)
+├── src/                
+│   ├── env.py           # Custom environment logic (Gymnasium)
+│   ├── train.py         # Main training script
+│   └── eval.py          # Evaluation & statistics generation
+├── results/             # .csv files (Schema: seed, step, episode_return, ...)
+├── logs/                # TensorBoard / Weights & Biases (W&B) logs
+├── figures/             # .pdf vector graphics only (must show mean + shaded std)
+├── videos/              # .mp4 videos of the agent acting (Before vs. After training)
+├── notebook.md          # Weekly lab log (Date, claim, evidence, decision)
+└── report.pdf           # Final project report (6-20 pages)

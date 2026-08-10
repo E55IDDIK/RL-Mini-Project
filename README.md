@@ -1,3 +1,4 @@
+# Instructions to reproduce everything in 1 command
 # Dynamic Vehicle Routing under Uncertain Traffic — Deep Reinforcement Learning
 
 <div align="center">
