@@ -1,1 +1,19 @@
 #.yaml files for hyperparameters (No hardcoded values)
+environment:
+  num_customers: 10
+  vehicle_capacity: 30
+
+  map_size: 100.0
+
+  demand_min: 1
+  demand_max: 10
+
+  traffic_min: 1.0
+  traffic_max: 3.0
+
+  max_steps: 100
+
+reward:
+  delivery_bonus: 10.0
+  unserved_penalty: 10.0
+  completion_bonus: 50.0
