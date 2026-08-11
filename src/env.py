@@ -34,7 +34,7 @@ class DynamicVRPEnv(gym.Env):
             config = yaml.safe_load(file)
 
         env_config = config["environment"]
-        # ---------------------------------------------------------
+        #
         #instanciating the class attributes from config
         self.num_customers = env_config["num_customers"]
         self.num_nodes = env_config["num_customers"] + 1 # customers + depot
@@ -43,12 +43,12 @@ class DynamicVRPEnv(gym.Env):
         self.demand_min = env_config["demand_min"]
         self.demand_max = env_config["demand_max"]
         self.max_steps = env_config["max_steps"]
-        # ---------------------------------------------------------
+        #
         # Action space : number of discrete actions = num_nodes to visit
         # node 0 = depot | nodes 1..N = customers
         self.action_space = spaces.Discrete(self.num_nodes)
         #so far we didnt apply the mask to hide illegal choices 
-        # ---------------------------------------------------------
+        #
         # Observation space : wrapper dictionary with set of keys 
         # [current_node, remaining_capacity,customer_demands,visited_status]
         # For now we keep the space simple
@@ -69,7 +69,7 @@ class DynamicVRPEnv(gym.Env):
             ),
             "visited": spaces.MultiBinary(self.num_nodes),
         })
-        # ---------------------------------------------------------
+        #
         # Variables initialized later by reset()
         self.coordinates: Optional[np.ndarray] = None
         self.demands: Optional[np.ndarray] = None
@@ -77,38 +77,28 @@ class DynamicVRPEnv(gym.Env):
         self.current_node: Optional[int] = None
         self.remaining_capacity: Optional[float] = None
         self.visited: Optional[np.ndarray] = None
-
         self.step_count = 0
 
 
+
     def reset(self, *,seed=None, options=None):
-
+        '''function to reset the agent'''
         super().reset(seed=seed)
-
-        # ---------------------------------------------------------
-        # Generate node coordinates
-        # ---------------------------------------------------------
-
+        #
+        # generating nodes coordinates
         self.coordinates = self.np_random.uniform(
             low=0,
             high=self.map_size,
             size=(self.num_nodes, 2)
         ).astype(np.float32)
 
-        # ---------------------------------------------------------
-        # Depot is node 0
-        # ---------------------------------------------------------
-
-        # We put the depot at the center of the map.
+        # We put the depot self.coordinates[0] the center of the map.
         self.coordinates[0] = np.array(
             [self.map_size / 2, self.map_size / 2],
             dtype=np.float32
         )
 
-        # ---------------------------------------------------------
-        # Generate customer demands
-        # ---------------------------------------------------------
-
+        # generating customer demands
         self.demands = np.zeros(
             self.num_nodes,
             dtype=np.float32
@@ -120,40 +110,25 @@ class DynamicVRPEnv(gym.Env):
             size=self.num_customers
         )
 
-        # ---------------------------------------------------------
-        # Calculate pairwise distances
-        # ---------------------------------------------------------
-
+        # calculating the distance matrix 
         self.distance_matrix = self._calculate_distances()
 
-        # ---------------------------------------------------------
         # Initialize vehicle
-        # ---------------------------------------------------------
-
         self.current_node = 0
-
         self.remaining_capacity = float(
             self.vehicle_capacity
         )
 
-        # ---------------------------------------------------------
-        # Visited array
-        # ---------------------------------------------------------
-
+        # initializing the visited nodes array 
         self.visited = np.zeros(
             self.num_nodes,
             dtype=np.int8
         )
-
-        # Depot is considered visited.
+        # depot is considered visited.
         self.visited[0] = 1
-
         self.step_count = 0
-
-        # ---------------------------------------------------------
-        # Build observation
-        # ---------------------------------------------------------
-
+        # 
+        # Building observation 
         observation = self._get_observation()
 
         info = {
@@ -162,16 +137,13 @@ class DynamicVRPEnv(gym.Env):
         }
 
         return observation, info
-
-    # =============================================================
-    # DISTANCE MATRIX
-    # =============================================================
+    
 
     def _calculate_distances(self):
+        '''function to calculate the distance matrix'''
 
-        # Difference between every pair of nodes
+        # we calculate the difference between every pair of nodes
         coordinates = np.asarray(self.coordinates)
-
         differences = (
             coordinates[:, np.newaxis, :]
             - coordinates[np.newaxis, :, :]
@@ -184,11 +156,9 @@ class DynamicVRPEnv(gym.Env):
 
         return distances.astype(np.float32)
 
-    # =============================================================
-    # OBSERVATION
-    # =============================================================
 
     def _get_observation(self):
+        '''function to create observation'''
 
         if (
             self.current_node is None
