@@ -1,6 +1,4 @@
 # Custom environment logic (Gymnasium)
-
-#generating the routing instance
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
@@ -22,7 +20,7 @@ class DynamicVRPEnv(gym.Env):
     - Static Euclidean distance matrix
 
     Traffic, partial observability, rewards, and action masking
-    will be added in later versions.
+    will be added eventually
     """
 
     metadata = {"render_modes": ["human"]}
@@ -31,40 +29,29 @@ class DynamicVRPEnv(gym.Env):
         '''Constructor'''
         super().__init__()
 
-        #Loading configurations
-        #opening the config file
+        #Loading configurations from yaml file
         with open(config_path, "r") as file:
             config = yaml.safe_load(file)
 
         env_config = config["environment"]
-
+        # ---------------------------------------------------------
+        #instanciating the class attributes from config
         self.num_customers = env_config["num_customers"]
-        self.num_nodes = self.num_customers + 1 #+depot
-
+        self.num_nodes = env_config["num_customers"] + 1 # customers + depot
         self.vehicle_capacity = env_config["vehicle_capacity"]
-
         self.map_size = env_config["map_size"]
-
         self.demand_min = env_config["demand_min"]
         self.demand_max = env_config["demand_max"]
-
         self.max_steps = env_config["max_steps"]
-
-
         # ---------------------------------------------------------
-        # Action space : num_nodes discrete actions (num_nodes to visit)
-        # Node 0 = depot
-        # Nodes 1..N = customers
+        # Action space : number of discrete actions = num_nodes to visit
+        # node 0 = depot | nodes 1..N = customers
         self.action_space = spaces.Discrete(self.num_nodes)
         #so far we didnt apply the mask to hide illegal choices 
-
         # ---------------------------------------------------------
-        # Observation space 
-        # For now we keep the observation simple: 
-        # [current_node,
-        #  remaining_capacity,
-        #  customer_demands,
-        #  visited_status]
+        # Observation space : wrapper dictionary with set of keys 
+        # [current_node, remaining_capacity,customer_demands,visited_status]
+        # For now we keep the space simple
         #
         self.observation_space = spaces.Dict({
             "current_node": spaces.Discrete(self.num_nodes),
@@ -77,26 +64,22 @@ class DynamicVRPEnv(gym.Env):
             "demands": spaces.Box(
                 low=0,
                 high=self.demand_max,
-                shape=(self.num_nodes,),
+                shape=(self.num_nodes,),#demans for the number of customers
                 dtype=np.float32
             ),
             "visited": spaces.MultiBinary(self.num_nodes),
         })
-
         # ---------------------------------------------------------
         # Variables initialized later by reset()
-
         self.coordinates: Optional[np.ndarray] = None
         self.demands: Optional[np.ndarray] = None
         self.distance_matrix: Optional[np.ndarray] = None
-
         self.current_node: Optional[int] = None
         self.remaining_capacity: Optional[float] = None
         self.visited: Optional[np.ndarray] = None
 
         self.step_count = 0
 
-    # ***********************************************************
 
     def reset(self, *,seed=None, options=None):
 
