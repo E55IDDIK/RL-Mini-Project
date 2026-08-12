@@ -8,8 +8,8 @@ from typing import Optional
 
 
 class DynamicVRPEnv(gym.Env):
-    """
-    Dynamic Vehicle Routing Environment.
+    """ 
+    the environment class
 
     Version 1:
     - One depot
