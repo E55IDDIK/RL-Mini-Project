@@ -1,7 +1,7 @@
 # Core
 numpy
 gymnasium
-
+pyyaml
 # Deep learning
 torch
 torch-geometric

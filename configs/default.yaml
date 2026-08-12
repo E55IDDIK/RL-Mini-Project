@@ -1,0 +1,49 @@
+# ============================================================================
+# Default configuration — Dynamic CVRP under uncertain traffic (POMDP)
+# ============================================================================
+
+seed: 42                     # fixed seed for reproducibility (run_all.sh)
+
+# ---------------------------------------------------------------------------
+# Problem size
+# ---------------------------------------------------------------------------
+problem:
+  n_customers: 15            # number of customers (depot is a separate, extra node)
+  vehicle_capacity: 30       # max load the vehicle can carry before it must reload
+  demand_low: 1               # per-customer demand ~ Uniform{demand_low..demand_high}
+  demand_high: 9               # must stay <= vehicle_capacity
+
+# ---------------------------------------------------------------------------
+# Traffic / uncertainty (what makes this a POMDP)
+# ---------------------------------------------------------------------------
+traffic:
+  low: 1.0                    # free-flow multiplier
+  high: 3.0                   # worst-case congestion multiplier
+  spatial_scale: 0.30         # size/spread of congestion "hotspots"
+  observation_radius: 0.3    # agent only observes real traffic within this range
+
+# ---------------------------------------------------------------------------
+# Time windows — delivery must occur inside [start, end] per customer.
+# ---------------------------------------------------------------------------
+time_windows:
+  enabled: true
+  window_width_low: 30        # narrowest allowed delivery window (time units)
+  window_width_high: 60       # widest allowed delivery window (time units)
+  earliest_start: 0           # earliest a window may open
+  latest_start: 120           # latest a window may open
+
+# ---------------------------------------------------------------------------
+# Episode
+# ---------------------------------------------------------------------------
+episode:
+  max_steps: 200               # a structural safety valve (prevents runaway episodes),
+
+# ---------------------------------------------------------------------------
+# Reward weights (all in Section 4.3.3 of the cahier des charges)
+# ---------------------------------------------------------------------------
+reward:
+  w_distance: 1.0              # penalty per unit of effective travel cost (distance x traffic)
+  w_time_window_penalty: 10.0  # penalty for delivering outside a customer's time window
+  w_delivery_bonus: 1.0        # small bonus for each successful delivery
+  w_complete_bonus: 5.0        # bonus for finishing the full route back at the depot
+  w_unserved_penalty: 20.0     # per-customer penalty if truncated with unserved customers
