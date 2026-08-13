@@ -28,11 +28,13 @@ def generate_instance(cfg: dict,rng:np.random.Generator)-> DVRPInstance:
     prob = cfg["problem"]
     traf = cfg["traffic"]
     tw = cfg["time_windows"]
+    map_size = float(cfg["map"]["size"])
     N = prob["n_customers"] + 1  # + depot
 
-    #position : depot fixed at center, customers random in [0,1]^2
-    coords = rng.random((N,2)).astype(np.float32)
-    coords[0] = np.array([0.5,0.5],dtype=np.float32)
+
+    #position : depot fixed at center, customers random in [0,map_size]^2
+    coords = rng.random((N,2)).astype(np.float32)*map_size
+    coords[0] = np.array([map_size/2, map_size/2],dtype=np.float32)
     #demands: random per customer, 0 for the depot
     demands = rng.integers(prob["demand_low"],prob["demand_high"] + 1,size=N).astype(np.float32)
     demands[0] = 0.0
@@ -44,14 +46,14 @@ def generate_instance(cfg: dict,rng:np.random.Generator)-> DVRPInstance:
 
     #traffic: spatially-correlated congestion field, mapped to [low, high]
     n_centers = int(rng.integers(2,5))
-    centers = rng.random((n_centers,2)).astype(np.float32)
+    centers = rng.random((n_centers,2)).astype(np.float32)*map_size
     strengths = rng.uniform(0.5,1.0,size=n_centers).astype(np.float32)
     scale = float(traf["spatial_scale"]) #0.3
 
     mids = (coords[None,:,:] + coords[:,None,:]) / 2.0
     field = _congestion_field(mids.reshape(-1,2),centers,strengths,scale).reshape(N,N)
     fmin,fmax = float(field.min()),float(field.max())
-    b = (traf["high"] - traf["low"])/(fmax-fmin + 1e-8) # tiny number to avoid division by zero
+    b = (traf["high"] - traf["low"])/(fmax-fmin + 1e-8) # 1e-8: tiny number to avoid division by zero
     a = traf["low"] - b * fmin
     traffic = (a + b * field).astype(np.float32)
     traffic = 0.5 * (traffic + traffic.T)  # make symmetric

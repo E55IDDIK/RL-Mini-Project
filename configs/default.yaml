@@ -5,6 +5,11 @@
 seed: 42                     # fixed seed for reproducibility (run_all.sh)
 
 # ---------------------------------------------------------------------------
+# Map geometry
+# ---------------------------------------------------------------------------
+map:
+  size: 1.0    # side length of the square map; all coordinates fall in [0, size].
+# ---------------------------------------------------------------------------
 # Problem size
 # ---------------------------------------------------------------------------
 problem:
@@ -38,6 +43,11 @@ time_windows:
 episode:
   max_steps: 200               # a structural safety valve (prevents runaway episodes),
 
+# ---------------------------------------------------------------------------
+# Evaluation
+# ---------------------------------------------------------------------------
+evaluation:
+  n_episodes: 100               # number of evaluation instances (seeds) per method
 # ---------------------------------------------------------------------------
 # Reward weights (all in Section 4.3.3 of the cahier des charges)
 # ---------------------------------------------------------------------------
