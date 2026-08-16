@@ -1,0 +1,57 @@
+# ============================================================================
+# Dev configuration — small problem, fast training loop, for iterating on
+# the training loop itself (replay buffer / loss / logging), not for real
+# learning-curve results. Same structure as default.yaml.
+# ============================================================================
+
+seed: 42
+
+map:
+  size: 1.0
+
+problem:
+  n_customers: 7              # small: full episodes are cheap
+  vehicle_capacity: 30
+  demand_low: 1
+  demand_high: 9
+
+traffic:
+  low: 1.0
+  high: 3.0
+  spatial_scale: 0.30
+  observation_radius: 0.3
+
+time_windows:
+  enabled: true
+  window_width_low: 30
+  window_width_high: 60
+  earliest_start: 0
+  latest_start: 120
+
+episode:
+  max_steps: 40                # small problem -> short episodes
+
+evaluation:
+  n_episodes: 20
+
+reward:
+  w_distance: 1.0
+  w_time_window_penalty: 10.0
+  w_delivery_bonus: 1.0
+  w_complete_bonus: 5.0
+  w_unserved_penalty: 20.0
+
+training:
+  total_steps: 3000            # runs in seconds, for debugging the loop
+  warmup_steps: 200
+  buffer_size: 5000
+  batch_size: 32
+  learning_rate: 0.001
+  gamma: 0.99
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+  epsilon_decay_steps: 1500
+  target_update_freq: 100
+  eval_every: 500
+  checkpoint_every: 1500
+  seed: 42

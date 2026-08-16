@@ -57,3 +57,18 @@ reward:
   w_delivery_bonus: 1.0        # small bonus for each successful delivery
   w_complete_bonus: 5.0        # bonus for finishing the full route back at the depot
   w_unserved_penalty: 20.0     # per-customer penalty if truncated with unserved customers
+# Training
+training:
+  total_steps: 3000            # runs in seconds, for debugging the loop
+  warmup_steps: 200
+  buffer_size: 5000
+  batch_size: 32
+  learning_rate: 0.001
+  gamma: 0.99
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+  epsilon_decay_steps: 1500
+  target_update_freq: 100
+  eval_every: 500
+  checkpoint_every: 1500
+  seed: 42
