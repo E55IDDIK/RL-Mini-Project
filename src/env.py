@@ -168,7 +168,7 @@ class DynamicCVRPEnv(gym.Env):
             "traffic_mask": self.observed.astype(np.float32),
             "vehicle":      np.array([self.remaining_cap / cap,
                                       self.steps / max_steps,
-                                      self.elapsed_time / max_steps], np.float32),
+                                      self.elapsed_time / self._tw_horizon], np.float32),
             "action_mask":  self._valid_mask().astype(np.float32),
         }
 # ------------------------------------------------------------------- step

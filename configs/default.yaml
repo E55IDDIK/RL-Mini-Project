@@ -57,3 +57,21 @@ reward:
   w_delivery_bonus: 1.0        # small bonus for each successful delivery
   w_complete_bonus: 5.0        # bonus for finishing the full route back at the depot
   w_unserved_penalty: 20.0     # per-customer penalty if truncated with unserved customers
+
+# ---------------------------------------------------------------------------
+# Training hyperparameters (GNN-DQN)
+# ---------------------------------------------------------------------------
+training:
+  total_steps: 20000             # full-scale training run
+  warmup_steps: 1000             # fill the buffer before learning starts
+  buffer_size: 50000
+  batch_size: 64
+  learning_rate: 0.001
+  gamma: 0.99
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+  epsilon_decay_steps: 10000
+  target_update_freq: 500
+  eval_every: 1000
+  checkpoint_every: 5000
+  seed: 42
