@@ -75,3 +75,22 @@ training:
   eval_every: 1000
   checkpoint_every: 5000
   seed: 42
+
+# ---------------------------------------------------------------------------
+# Training hyperparameters (GNN-PPO)
+# ---------------------------------------------------------------------------
+ppo:
+  total_steps: 20000             # same budget as DQN for fair comparison
+  rollout_length: 512           # steps collected per rollout (spans multiple episodes)
+  batch_size: 64                 # mini-batch size for PPO update epochs
+  n_epochs: 10                   # number of passes over each rollout buffer
+  learning_rate: 0.0003
+  gamma: 0.99
+  gae_lambda: 0.95               # GAE lambda for advantage estimation
+  clip_eps: 0.2                  # PPO clipping parameter
+  vf_coef: 0.5                   # value function loss weight
+  ent_coef: 0.01                 # entropy bonus weight (encourages exploration)
+  max_grad_norm: 0.5             # gradient clipping (max L2 norm)
+  eval_every: 500               # evaluate every N env steps
+  checkpoint_every: 5000         # save model every N env steps
+  seed: 42

@@ -8,17 +8,22 @@ class Policy(ABC):
     def act(self,obs:dict)->int:
         """Choose the next node to visit, given only the current observation."""
         pass
-    def reset(self):
-        """called at start of each episode."""
+    def reset(self, seed: int | None = None):
+        """Called at the start of each episode."""
         pass
 
 
 class RandomPolicy(Policy):
 
-    def __init__(self,seed:int|None=None):
+    def __init__(self, seed: int | None = None):
+        self.default_seed = seed
         self.rng = np.random.default_rng(seed)
-    
-    def act(self,obs:dict)->int:
+
+    def reset(self, seed: int | None = None):
+        use_seed = seed if seed is not None else self.default_seed
+        self.rng = np.random.default_rng(use_seed)
+
+    def act(self, obs: dict) -> int:
         legal = np.flatnonzero(obs["action_mask"])
         return int(self.rng.choice(legal))
     

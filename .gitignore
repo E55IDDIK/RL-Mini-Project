@@ -14,3 +14,6 @@ checkpoints/
 venv/
 .venv/
 env/
+
+#files
+Ds-G08_MD3SI.md

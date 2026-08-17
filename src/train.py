@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import numpy as np
 import torch
+from torch.utils.tensorboard import SummaryWriter
 
 from src.dqn import (
     double_dqn_loss,
@@ -116,8 +117,10 @@ def train(cfg: dict, device: str = "cpu") -> None:
     # experience replay memory
     buffer = ReplayBuffer(capacity=int(tcfg["buffer_size"]), n_nodes=n_nodes, seed=seed)
 
+    os.makedirs("logs", exist_ok=True)
     os.makedirs("checkpoints", exist_ok=True)
     os.makedirs("results", exist_ok=True)
+    writer = SummaryWriter(log_dir=os.path.join("logs", f"gnn_dqn_seed{seed}_{int(time.time())}"))
     results_path = os.path.join("results", "gnn_dqn.csv")
     init_csv(results_path)  # start fresh for this training run
 
@@ -153,6 +156,9 @@ def train(cfg: dict, device: str = "cpu") -> None:
         done = terminated or truncated
 
         if done:
+            # log the spisode and start another one
+            writer.add_scalar("rollout/episode_return", ep_return, step)
+            writer.add_scalar("rollout/episode_length", ep_step, step)
             obs, info = env.reset()
             episode += 1
             ep_return = 0.0
@@ -166,6 +172,9 @@ def train(cfg: dict, device: str = "cpu") -> None:
             optimizer.zero_grad() #clears old grad
             loss.backward() #calculate grad
             optimizer.step() #updates online weights
+
+            writer.add_scalar("train/loss", loss.item(), step)
+            writer.add_scalar("train/epsilon", epsilon, step)
             # synching the target net periodically
             if step % target_update_freq == 0:
                 sync_target_network(online, target)
@@ -183,6 +192,12 @@ def train(cfg: dict, device: str = "cpu") -> None:
             mean_on_time = float(np.mean([r["n_on_time"] for r in results]))
             mean_waited = float(np.mean([r["n_waited"] for r in results]))
             mean_late = float(np.mean([r["n_late"] for r in results]))
+
+            # logging
+            writer.add_scalar("eval/episode_return", mean_return, step)
+            writer.add_scalar("eval/total_cost", mean_cost, step)
+            writer.add_scalar("eval/n_served", mean_served, step)
+            writer.add_scalar("eval/n_late", mean_late, step)
 
             seed_label = f"{eval_seeds[0]}-{eval_seeds[-1]}"
             row = {
@@ -217,6 +232,7 @@ def train(cfg: dict, device: str = "cpu") -> None:
             }, ckpt_path)
             print(f"[step {step}] checkpoint saved -> {ckpt_path}")
 
+    writer.close()
     print("training complete.")
 
 
