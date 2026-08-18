@@ -6,7 +6,7 @@ Design notes (read this before touching the architecture):
    The original plan included a GRU carrying a "belief state" across steps
    within an episode. That conflicts with how the training loop actually
    works: `replay_buffer.py` samples random, unordered transitions from
-   across many different episodes/timesteps, and `train.py` calls
+   across many different episodes/timesteps, and `train_dqn.py` calls
    `network(obs_batch) -> Q` with no hidden state in or out. A GRU cannot
    meaningfully carry memory between two transitions that have no temporal
    relationship to each other.
@@ -166,7 +166,7 @@ class GNNEncoder(nn.Module):
 class GNNQNetwork(nn.Module):
     """The real GNN-DQN network: obs_batch -> Q-values, shape (B, N).
 
-    This is what `train.py`'s `build_network(kind="real")` should return.
+    This is what `train_dqn.py`'s `build_network(kind="real")` should return.
     It satisfies the exact same contract as `StubQNetwork` in dqn.py, so no
     other file needs to change at integration time:
 

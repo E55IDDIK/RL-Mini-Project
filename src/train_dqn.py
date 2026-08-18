@@ -1,8 +1,8 @@
 """GNN-DQN training loop for the Dynamic CVRP environment.
 
 Usage:
-    python src/train.py --config configs/dev.yaml
-    python src/train.py --config configs/default.yaml --steps 20000
+    python src/train_dqn.py --config configs/dev.yaml
+    python src/train_dqn.py --config configs/default.yaml --steps 20000
 """
 
 from __future__ import annotations
@@ -11,7 +11,6 @@ import argparse
 import csv
 import os
 import sys
-import time
 from pathlib import Path
 
 # make sure src is importable regardless where we run it from
@@ -19,7 +18,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import numpy as np
 import torch
-from torch.utils.tensorboard import SummaryWriter
 
 from src.dqn import (
     double_dqn_loss,
@@ -120,7 +118,14 @@ def train(cfg: dict, device: str = "cpu") -> None:
     os.makedirs("logs", exist_ok=True)
     os.makedirs("checkpoints", exist_ok=True)
     os.makedirs("results", exist_ok=True)
-    writer = SummaryWriter(log_dir=os.path.join("logs", f"gnn_dqn_seed{seed}_{int(time.time())}"))
+    try:
+        from torch.utils.tensorboard import SummaryWriter
+        log_dir = os.path.join("logs", "gnn_dqn")
+        writer = SummaryWriter(log_dir=log_dir)
+        print(f"TensorBoard logging to {log_dir}")
+    except ImportError:
+        writer = None
+        print("TensorBoard not available, skipping TB logging.")
     results_path = os.path.join("results", "gnn_dqn.csv")
     init_csv(results_path)  # start fresh for this training run
 
@@ -232,7 +237,8 @@ def train(cfg: dict, device: str = "cpu") -> None:
             }, ckpt_path)
             print(f"[step {step}] checkpoint saved -> {ckpt_path}")
 
-    writer.close()
+    if writer is not None:
+        writer.close()
     print("training complete.")
 
 
