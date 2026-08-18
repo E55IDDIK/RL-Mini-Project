@@ -3,10 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 /src/__pycache__
-
-# TensorBoard logs
-logs/
-
 # Virtual environments
 venv/
 .venv/
