@@ -7,9 +7,6 @@ __pycache__/
 # TensorBoard logs
 logs/
 
-# Model checkpoints
-checkpoints/
-
 # Virtual environments
 venv/
 .venv/
