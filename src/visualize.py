@@ -1053,7 +1053,7 @@ requestAnimationFrame(render);
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="configs/default.yaml")
-    parser.add_argument("--seed", type=int, default=48)
+    parser.add_argument("--seed", type=int, default=80)
     parser.add_argument("--method", type=str, default="all",
                         choices=["random", "greedy", "gnn_dqn", "gnn_ppo", "all"])
     parser.add_argument("--compare", action="store_true", default=True,
@@ -1072,11 +1072,11 @@ if __name__ == "__main__":
         "greedy": GreedyNearestNeighbor(),
     }
  
-    dqn_path = find_latest_checkpoint("gnn_dqn_seed42")
+    dqn_path = find_latest_checkpoint("gnn_dqn_seed80")
     if dqn_path and os.path.exists(dqn_path):
         policies["gnn_dqn"] = DQNGreedyPolicy(dqn_path, n_nodes)
  
-    ppo_path = find_latest_checkpoint("gnn_ppo_seed42")
+    ppo_path = find_latest_checkpoint("gnn_ppo_seed80")
     if ppo_path and os.path.exists(ppo_path):
         policies["gnn_ppo"] = PPOGreedyPolicy(ppo_path, n_nodes)
  
