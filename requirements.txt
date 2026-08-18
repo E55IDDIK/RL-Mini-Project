@@ -10,7 +10,6 @@ torch-geometric
 
 # Training
 tensorboard
-tqdm
 
 # Visualization
 matplotlib
