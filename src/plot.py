@@ -72,23 +72,24 @@ def plot_benchmark():
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
     
     # 1. Return
-    sns.barplot(data=df, x="method", y="episode_return", ax=axes[0], errorbar="sd", palette="viridis")
+    sns.barplot(data=df, x="method", y="episode_return", ax=axes[0], errorbar="sd", palette="viridis", hue="method", legend=False)
     axes[0].set_title("Final Episode Return")
     axes[0].set_ylabel("Return")
     
     # 2. Cost
-    sns.barplot(data=df, x="method", y="total_cost", ax=axes[1], errorbar="sd", palette="viridis")
+    sns.barplot(data=df, x="method", y="total_cost", ax=axes[1], errorbar="sd", palette="viridis", hue="method", legend=False)
     axes[1].set_title("Total Travel Cost")
     axes[1].set_ylabel("Cost")
     
     # 3. On Time
-    sns.barplot(data=df, x="method", y="n_on_time", ax=axes[2], errorbar="sd", palette="viridis")
+    sns.barplot(data=df, x="method", y="n_on_time", ax=axes[2], errorbar="sd", palette="viridis", hue="method", legend=False)
     axes[2].set_title("On-Time Deliveries")
     axes[2].set_ylabel("Count")
     
     for ax in axes:
         ax.set_xlabel("")
         labels = [item.get_text().upper().replace("_", "-") for item in ax.get_xticklabels()]
+        ax.set_xticks(ax.get_xticks())
         ax.set_xticklabels(labels, rotation=30)
         
     plt.tight_layout()
