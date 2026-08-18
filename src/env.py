@@ -47,6 +47,24 @@ class VRPGraphEnv(gym.Env):
     self.reset(seed=seed)
 
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
+def reset(self, *, seed: int | None= None, option: dict | None = None):
+    if seed in not None:
+      self._rng = np.random.default_rng(seed)
+
+    n = self.num_nodes
+    lo, hi = self.coord_range
+    self.coords = self._rng.uniform(lo, hi, size=(n, 2))
+
+    self.demands = np.zeros(n, dtype=np.float32)
+    self.demands[1:] = self._rng.uniform(*self.demand_range, size=n - 1).astype(np.float32)
+
+    diff = self.coords[:, None, :] -self.coords[None, :, :]
+    base_dict = np.sqrt((diff ** 2).sum(-1)).astype(np.float32)
+
+    
+
+
     
                                     
     
