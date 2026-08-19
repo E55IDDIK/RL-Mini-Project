@@ -1,1 +1,12 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
 /src/__pycache__
+# Virtual environments
+venv/
+.venv/
+env/
+
+#plot
+src/plot.ipynb
