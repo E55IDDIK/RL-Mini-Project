@@ -82,26 +82,73 @@ The wait carries forward, so later customers' time checks stay correct. Only lat
 **Decision :** Adopted the force-to-wait convention, matching standard VRPTW practice rather than an ad hoc simplification.
 
 ## 2026-08-10 : `src/env.py` built and validated (Week 1)
- 
+
 **Claim :** Translate the finalized POMDP (state, observation, action, reward) into a working Gymnasium environment.
- 
+
 **Evidence :** Built `generate_instance()` (positions, demands, Manhattan distances, spatially-correlated traffic via Gaussian hotspots, time windows) and `DynamicCVRPEnv` (`reset`/`step`, action masking, observation), all reading from `configs/default.yaml`. Each step, the vehicle picks the next node to visit; travel cost = distance × traffic, and the action mask blocks illegal moves (already served, over capacity, …).
- 
+
 **Decision :** Environment considered functionally complete for Week 1. Random Policy and Greedy Nearest-Neighbor baselines are next.
- 
+
 ## 2026-08-12 : Independent code review & bug fixes (Week 1)
- 
+
 **Claim :** Wanted a second opinion on `env.py` before moving on.
- 
+
 **Evidence :** Had the code reviewed externally, then checked every point against our actual design and the cahier des charges. Adopted : normalizing time-window features in the observation, making `terminated`(served all customers)/`truncated`(force to cut the episode) mutually exclusive means just one of them can be true ,never both at the same time
- 
+
 **Decision :** Bug fixed, environment re-verified. `env.py` considered stable.
- 
+
 ## 2026-08-13 : Baselines, eval.py, and Week 1 wrap-up
- 
+
 **Claim :** Finish Week 1, implement the Random and Greedy Nearest-Neighbor baselines and log results in the required CSV schema.
- 
+
 **Evidence :** Built `src/baselines.py` with a shared `Policy` interface (`act(obs)` only, no `info`, matching exactly what a real trained agent will have access to) : `RandomPolicy` and `GreedyNearestNeighbor` (nearest by raw distance, matching the cahier des charges' literal definition, not traffic-adjusted cost). Built `src/eval.py`, logging one row per episode to `results/*.csv` with the required schema (`seed, step, episode_return, ...`); `step` stays `0` for baselines since they never train. Ran 100 matched-seed episodes per method : Greedy cuts average travel cost by ~41% vs Random (22.21 → 13.01), but only marginally improves the late-delivery rate (47.5% → 43.1%). Decomposing `episode_return` into its components showed the lateness penalty is the single largest term for both methods, distance-minimization alone doesn't solve this problem. Also noticed `n_served`/`terminated` are saturated at 100% for both baselines under the current config, so those two metrics won't discriminate between methods until the GNN agents are in the comparison too.
- 
+
 **Decision :** Week 1 (MDP formalization, environment, baselines) considered complete. Real, reproducible baseline numbers are now available for the report.
- 
+
+## 2026-08-14 : GNN encoder built (Week 2)
+
+**Claim :** Translate the shared perception module (cahier des charges §4.4.2) into working code : dense observation arrays to per-node embeddings.
+
+**Evidence :** Built `src/gnn_encoder.py`. `build_complete_edge_index` converts the environment's dense `(N,N)` distance/traffic matrices into the `edge_index`/`edge_attr` format PyTorch Geometric's `NNConv` expects (240 directed edges for `N=16`). `GNNLayer` wraps one `NNConv` with a small edge-network mapping `[distance, traffic, observed]` to a per-edge weight matrix, so a message from a nearby calm road is weighted differently than one from a distant, congested road. `GNNEncoder` stacks two `GNNLayer`s (information propagates two hops) and pools the result into a fixed-size vector : the current node's embedding, a global mean-pooled embedding across all nodes, and the raw vehicle state (capacity, elapsed time), concatenated.
+
+**Decision :** Verified against real data from `env.py` at each step (`edge_attr` values checked by hand against direct matrix lookups; a full 3-node forward pass recomputed by hand matched the actual `NNConv` output to four decimal places). Encoder considered correct and ready to feed a decision head.
+
+## 2026-08-15 : GRU belief module dropped (Week 2, divergence from cahier des charges)
+
+**Claim :** The original design (cahier des charges §4.4.2) specifies a GRU belief state on top of the GNN encoder. Needed to decide whether to build it before the DQN/PPO heads.
+
+**Evidence :** A recurrent hidden state is only trained correctly on ordered, sequential transitions. DQN's replay buffer samples transitions in random, shuffled order, which breaks that sequential dependency without extra machinery (sequence-chunked replay, burn-in) that was outside this project's timeline. Separately, `env.py`'s `traffic_mask` already accumulates monotonically within an episode : once an edge is revealed it stays revealed, so the observation itself already functions as a running summary of everything seen so far, reducing the marginal value a separate learned memory would add on top.
+
+**Decision :** Dropped the GRU. Final architecture is the GNN encoder feeding a per-node decision head directly, no recurrent component.
+
+## 2026-08-16 : GNN-DQN implemented and trained (Week 2)
+
+**Claim :** Build the first learning agent : Double DQN with action masking on top of the GNN encoder.
+
+**Evidence :** Built `src/dqn.py` (per-node Q-head, `GNNQNetwork`), `src/replay_buffer.py`, and `src/train_dqn.py`. Double DQN : the online network selects the next-state action, the target network evaluates it, avoiding the overestimation bias of vanilla DQN. The buffer stores `terminated` and `truncated` separately, and only `terminated` zeroes the Bellman bootstrap target, a truncated episode (hit `max_steps`) is not a true terminal state, so the agent should still bootstrap through it. Hard target-network sync every 500 steps. Trained for 20,000 environment steps, 1,000 warm-up, buffer size 50,000, batch size 64, epsilon 1.0 → 0.05.
+
+**Decision :** Training converges by roughly step 15,000 and plateaus (checkpoint eval : return −53.19 at step 5,000 → −2.72 at step 15,000, on 5 held-out seeds). Checkpoints saved every 5,000 steps to `checkpoints/`.
+
+## 2026-08-17 : GNN-PPO implemented and trained (Week 3)
+
+**Claim :** Build the second learning agent, sharing the same GNN encoder, per cahier des charges §4.4.2's shared-backbone requirement.
+
+**Evidence :** Built `src/ppo.py` (actor-critic heads on the shared encoder) and `src/train_ppo.py`. Clipped surrogate objective, Generalized Advantage Estimation, entropy bonus for exploration, on-policy updates every 512 steps. Same 20,000-step training budget as GNN-DQN for a matched comparison.
+
+**Decision :** Training still visibly improving at the 20,000-step cutoff (checkpoint eval return : −66.33 at step 5,120 → −11.52 at step 20,000, still trending down in cost/lateness, not yet plateaued like GNN-DQN). Noted as a limitation for the results comparison, not treated as a finished, converged result.
+
+## 2026-08-18 : Four-method evaluation and results analysis (Week 3/4)
+
+**Claim :** Evaluate Random, Greedy Nearest-Neighbor, GNN-DQN, and GNN-PPO under one identical protocol, per cahier des charges §5.2.
+
+**Evidence :** Extended `src/eval.py` to run all four methods on the same 100 held-out seeds. GNN-DQN reaches a mean episode return of −1.69 (95% CI [−3.09, −0.30]) versus Greedy's −57.71 and Random's −72.27, a 97% improvement over the best baseline. Late-delivery rate falls from 43.1% (Greedy) to 2.7% (GNN-DQN). Not achieved via lower cost, Greedy stays cheapest (13.01), but via waiting more (7.27/episode vs Greedy's 3.14), exploiting the reward's free-wait/penalized-lateness asymmetry. GNN-PPO shows the same pattern, smaller effect (return −19.91, late rate 12.5%), consistent with being undertrained rather than weaker.
+
+**Decision :** Core finding : distance-minimizing heuristics can't fix time-window compliance ; a learned agent can. Open item : GNN-DQN vs. GNN-PPO isn't yet a fair comparison, confounded by GNN-PPO's earlier training cutoff.
+
+## 2026-08-19 : Reproducibility hardening, run_all.sh, requirements.txt (Week 4)
+
+**Claim :** Professor's Rule 1 : "if `run_all.sh` fails to run, the project is not validated." Needed to verify this end to end, not just write it once.
+
+**Evidence :** Found two real gaps : `requirements.txt` was missing `pandas` and `seaborn` (both imported by `src/plot.py`), which would crash the figure-generation step on a fresh install ; and `run_all.sh` had no guard against missing checkpoints, meaning a submission without `checkpoints/*.pt` would run to completion, silently write header-only CSVs and blank figures, and still exit `0`. Added a checkpoint-count guard and a post-run check that every output CSV has data rows and every figure PDF is non-empty. Tested both : confirmed the checkpoint guard fires correctly, and confirmed the output check catches a deliberately-emptied CSV. Mirrored the same guards into `run_all.bat` for Windows, with CRLF line endings verified.
+
+**Decision :** `run_all.sh`/`run_all.bat` now fail loudly instead of silently on the two most likely submission-day failure modes. `requirements.txt` corrected.
