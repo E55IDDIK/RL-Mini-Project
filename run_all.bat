@@ -60,11 +60,21 @@ if !ERRORLEVEL! NEQ 0 (
 
 echo.
 echo =========================================
-echo 3. Generating figures...
+echo 3. Running ablation study...
+echo =========================================
+%PY% -m src.ablation_observation_radius
+if !ERRORLEVEL! NEQ 0 (
+    echo ERROR: step 3 ^(ablation^) failed.
+    exit /b !ERRORLEVEL!
+)
+
+echo.
+echo =========================================
+echo 4. Generating figures...
 echo =========================================
 %PY% -m src.plot
 if !ERRORLEVEL! NEQ 0 (
-    echo ERROR: step 3 ^(plot^) failed.
+    echo ERROR: step 4 ^(plot^) failed.
     exit /b !ERRORLEVEL!
 )
 
@@ -75,6 +85,7 @@ echo Verifying outputs
 echo =========================================
 call :check_csv "results\learning_curve_data.csv"
 call :check_csv "results\eval_comparison.csv"
+call :check_csv "results\ablation_observation_radius.csv"
 call :check_file "figures\learning_curve_return.pdf"
 call :check_file "figures\learning_curve_metrics.pdf"
 call :check_file "figures\benchmark_comparison.pdf"

@@ -44,7 +44,13 @@ $PY -m src.eval
 
 echo ""
 echo "========================================="
-echo "3. Generating figures..."
+echo "3. Running ablation study..."
+echo "========================================="
+$PY -m src.ablation_observation_radius
+
+echo ""
+echo "========================================="
+echo "4. Generating figures..."
 echo "========================================="
 $PY -m src.plot
 
@@ -54,7 +60,7 @@ echo "========================================="
 echo "Verifying outputs"
 echo "========================================="
 status=0
-for f in results/learning_curve_data.csv results/eval_comparison.csv; do
+for f in results/learning_curve_data.csv results/eval_comparison.csv results/ablation_observation_radius.csv; do
     if [ ! -s "$f" ]; then
         echo "  MISSING/EMPTY: $f" >&2; status=1
     else

@@ -8,5 +8,5 @@ venv/
 .venv/
 env/
 
-#files
-Ds-G08_MD3SI.md
+#plot
+src/plot.ipynb
