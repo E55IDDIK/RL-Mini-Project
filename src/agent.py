@@ -86,6 +86,14 @@ class GNNDQNAgent:
     q_masked = np.wehre(mask.astype(bool), q, -1e9)
     return int(np.argmax(q_masked))
 
+  def store(self, obs, acion, reward, next_obs, done):
+    self.buffer.push(
+      obs["node_features"], obs["edge_weight"], action, reward, next_obs["node_features"], next_obs["edge_weight"], next_obs["action_mask], done,  
+    )
+
+  def decay_epsilon(self):
+    self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+    
 
 
 
