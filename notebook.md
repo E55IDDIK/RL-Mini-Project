@@ -113,13 +113,12 @@ The wait carries forward, so later customers' time checks stay correct. Only lat
 
 **Decision :** Verified against real data from `env.py` at each step (`edge_attr` values checked by hand against direct matrix lookups; a full 3-node forward pass recomputed by hand matched the actual `NNConv` output to four decimal places). Encoder considered correct and ready to feed a decision head.
 
-## 2026-08-15 : GRU belief module dropped (Week 2, divergence from cahier des charges)
+## 2026-08-15 — GRU Belief Module Removed
+**Claim :**: The original project plan included a GRU module after the GNN encoder to remember traffic information from previous steps. We needed to decide whether to include it before implementing the DQN and PPO agents.
 
-**Claim :** The original design (cahier des charges §4.4.2) specifies a GRU belief state on top of the GNN encoder. Needed to decide whether to build it before the DQN/PPO heads.
+**Evidence :** `DQN` learns from a replay buffer that samples past transitions in random order. A `GRU` needs transitions in their original time order to learn useful memory, so using it correctly would require additional methods such as sequential replay and burn-in. This was outside the project scope and timeline. In addition, the environment already keeps track of observed traffic: once traffic on an edge is revealed, it remains available in later observations during the same episode. Therefore, the observation already contains the traffic information seen so far.
 
-**Evidence :** A recurrent hidden state is only trained correctly on ordered, sequential transitions. DQN's replay buffer samples transitions in random, shuffled order, which breaks that sequential dependency without extra machinery (sequence-chunked replay, burn-in) that was outside this project's timeline. Separately, `env.py`'s `traffic_mask` already accumulates monotonically within an episode : once an edge is revealed it stays revealed, so the observation itself already functions as a running summary of everything seen so far, reducing the marginal value a separate learned memory would add on top.
-
-**Decision :** Dropped the GRU. Final architecture is the GNN encoder feeding a per-node decision head directly, no recurrent component.
+**Decision :** The GRU module was removed. The final architecture uses the GNN encoder directly with a per-node decision head, without a recurrent memory component.
 
 ## 2026-08-16 : GNN-DQN implemented and trained (Week 2)
 
