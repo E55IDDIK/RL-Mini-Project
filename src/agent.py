@@ -60,7 +60,32 @@ class GNNDQNAgent:
     self.target_net = QNetwork(nfd, hd, nl).to(self.device)
     self.target_net.load_state_dict(self.q_net.state_dict())
     self.target_net.eval()
-
     
+    self.optimizer = torch.optim.Adam(self.q_net.parameters(), lr=float(config["learning_rate"]))
+    self.buffer = ReplayBuffer(int(config["buffer_capacity"]))
+    self.train_steps = 0
+
+    self.epsilon = float(config["epsilon_start"])
+    self.epsilon_min = float(config["epsilon_min"])
+    self.epsilon_decay = float(config["epsilon_decay"])
+
+  def reset(self):
+    pass
+
+  def act(self, obs, explore: bool = False) -> int:
+    mask = obs["action_mask"]
+    valid_actions = np.flatnozero(mask)
+    if explore and random.random() < self.epsilon:
+      return int(np.random.choice(valid_actions))
+
+    nf = torch.tensor(obs["node_features"], dtype=torch.float32, device=self.device).unsqueeze(0)
+    ew = torch.tensor(obs["edge_weights"], dtype=torch.float32,  device=self.device).unsqueeze(0)
+    with torch.no_grad():
+      q = self.q_net(nf, ew).squeeze(0), cpu().numpy()
+
+    q_masked = np.wehre(mask.astype(bool), q, -1e9)
+    return int(np.argmax(q_masked))
+
+
 
 
