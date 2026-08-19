@@ -68,6 +68,16 @@ if !ERRORLEVEL! NEQ 0 (
     exit /b !ERRORLEVEL!
 )
 
+echo.
+echo =========================================
+echo 4. Assembling report.pdf...
+echo =========================================
+%PY% -m src.generate_report
+if !ERRORLEVEL! NEQ 0 (
+    echo ERROR: step 4 ^(generate_report^) failed.
+    exit /b !ERRORLEVEL!
+)
+
 REM --- verify the artefacts actually exist and are non-trivial ---------------
 echo.
 echo =========================================
@@ -78,6 +88,7 @@ call :check_csv "results\eval_comparison.csv"
 call :check_file "figures\learning_curve_return.pdf"
 call :check_file "figures\learning_curve_metrics.pdf"
 call :check_file "figures\benchmark_comparison.pdf"
+call :check_file "report.pdf"
 
 if not "!STATUS!"=="0" (
     echo.

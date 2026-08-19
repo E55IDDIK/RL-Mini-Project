@@ -48,6 +48,12 @@ echo "3. Generating figures..."
 echo "========================================="
 $PY -m src.plot
 
+echo ""
+echo "========================================="
+echo "4. Assembling report.pdf..."
+echo "========================================="
+$PY -m src.generate_report
+
 # --- verify the artefacts actually exist and are non-trivial -------------
 echo ""
 echo "========================================="
@@ -67,7 +73,7 @@ for f in results/learning_curve_data.csv results/eval_comparison.csv; do
         fi
     fi
 done
-for f in figures/learning_curve_return.pdf figures/learning_curve_metrics.pdf figures/benchmark_comparison.pdf; do
+for f in figures/learning_curve_return.pdf figures/learning_curve_metrics.pdf figures/benchmark_comparison.pdf report.pdf; do
     if [ ! -s "$f" ]; then
         echo "  MISSING/EMPTY: $f" >&2; status=1
     else

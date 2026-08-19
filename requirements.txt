@@ -16,3 +16,7 @@ matplotlib
 plotly
 seaborn
 imageio
+
+# Report generation (report.pdf)
+reportlab
+pypdfium2

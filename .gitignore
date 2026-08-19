@@ -10,3 +10,8 @@ env/
 
 #files
 Ds-G08_MD3SI.md
+
+# intermediate raster PNGs used only to build report.pdf (regenerate with
+# `python -m src.generate_report`); the vector figures/*.pdf are the
+# tracked source of truth.
+.report_assets/
