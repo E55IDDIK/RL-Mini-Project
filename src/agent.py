@@ -93,7 +93,21 @@ class GNNDQNAgent:
 
   def decay_epsilon(self):
     self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+
+  def update(self):
+    if len(self.buffer) < self.batch_size:
+        return None
+    batch = self.buffer.sample(self.batch_size)
+    nf = torch.tensor(np.array([b.node_features for b in batch]), dtype=torch.float32, device=self.device)
+    ew = torch.tensor(np.array([b.edge_weights for b in batch]), dtype=torch.float32, device=self.device)
+    actions = torch.tensor([b.action for b in batch], dtype=torch.long, device=self.device)
+    rewards = torch.tensor([b.reward for b in batch], dtype=torch.float32, device=self.device)
+    next_nf = torch.tensor(np.array([b.next_node_features for b in batch]), dtype=torch.float32, device=self.device)
+    next_ew = torch.tensor(np.array([b.next_edge_weights for b in batch]), dtype=torch.float32, device=self.device)
+    next_mask = torch.tensor(np.array([b.next_mask for b in batch]), dtype=torch.bool, device=self.device)
+    dones = torch.tensor([b.done for b in batch], dtype=torch.float32, device=self.device)
+
+    q_values = self.q_net(nf, ew)
+    q_sa = q_values.gather(1, actions.unsqueeze(1)).squeeze(1)
     
-
-
 
